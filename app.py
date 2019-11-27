@@ -1,5 +1,5 @@
 import os
-#import net
+import net
 import time
 from flask import Flask, request, url_for, send_from_directory
 from werkzeug import secure_filename
@@ -13,8 +13,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 html = '''
     <!DOCTYPE html>
-    <title>Upload File</title>
-    <h1>图片上传</h1>
+    <title>裂缝检测Demo</title>
+    <h1>裂缝检测Demo</h1>
     <form method=post enctype=multipart/form-data>
          <input type=file name=file>
          <input type=submit value=上传>
@@ -42,9 +42,9 @@ def upload_file():
             filename = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' ' + filename
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             file_url = url_for('uploaded_file', filename=filename)
-            re = 'uploads/' + filename
-#            re = net.get_lable(file_url)
-            results = '<br><h2>' + re + '<h2>'
+            area = 'uploads/' + filename
+            re = net.get_label(area)
+            results = '<br><h2>' + re + '<br>' + filename +'<h2>'
             return html + '<br><img src=' + file_url + ' height="400">' + results 
     return html
 

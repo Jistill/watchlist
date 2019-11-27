@@ -13,7 +13,7 @@ import time
 import os
 import copy
 from PIL import Image
-model_ft = models.resnet34(pretrained=True)
+model_ft = models.resnet34()
 class Flatten(nn.Module):
     def forward(self, input):
         return input.view(input.size(0), -1)
@@ -57,8 +57,7 @@ class Net(nn.Module):
  
         return x
 NewRes=Net(model_ft)
-NewRes.load_state_dict(torch.load('model.pt'))
-NewRes.cuda()
+NewRes.load_state_dict(torch.load('model.pt',map_location='cpu'))
 NewRes.eval()
 def get_label(path):
     image=mpimg.imread(path)
@@ -67,8 +66,8 @@ def get_label(path):
         transforms.Resize(size=(224,224)),
         transforms.ToTensor(),
         transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
-    Im = data_transforms(np.uint8(image)).unsqueeze(0).cuda()
-    if np.argmax(NewRes(Im).detach().cpu().numpy())==0:
+    Im = data_transforms(np.uint8(image)).unsqueeze(0)
+    if np.argmax(NewRes(Im).detach().numpy())==0:
         return u'无裂缝'
     else :
         return u'有裂缝'
