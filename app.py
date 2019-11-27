@@ -1,21 +1,54 @@
-from flask import Flask, render_template
+import os
+#import net
+import time
+from flask import Flask, request, url_for, send_from_directory
+from werkzeug import secure_filename
+
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = os.getcwd() + '/uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-name = 'Grey Li'
-movies = [
-    {'title': 'My Neighbor Totoro', 'year': '1988'},
-    {'title': 'Dead Poets Society', 'year': '1989'},
-    {'title': 'A Perfect World', 'year': '1993'},
-    {'title': 'Leon', 'year': '1994'},
-    {'title': 'Mahjong', 'year': '1996'},
-    {'title': 'Swallowtail Butterfly', 'year': '1996'},
-    {'title': 'King of Comedy', 'year': '1999'},
-    {'title': 'Devils on the Doorstep', 'year': '1999'},
-    {'title': 'WALL-E', 'year': '2008'},
-    {'title': 'The Pork of Music', 'year': '2012'},
-]
 
-@app.route('/')
-def index():
-    return render_template('index.html', name=name, movies=movies)
+html = '''
+    <!DOCTYPE html>
+    <title>Upload File</title>
+    <h1>图片上传</h1>
+    <form method=post enctype=multipart/form-data>
+         <input type=file name=file>
+         <input type=submit value=上传>
+    </form>
+    '''
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
+
+
+@app.route('/', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filename = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' ' + filename
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file_url = url_for('uploaded_file', filename=filename)
+            re = 'uploads/' + filename
+#            re = net.get_lable(file_url)
+            results = '<br><h2>' + re + '<h2>'
+            return html + '<br><img src=' + file_url + ' height="400">' + results 
+    return html
+
+
+if __name__ == '__main__':
+    app.run()
 	
